@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.samsungsami.example.samirules;
+package cloud.artik.example.rules;
 
 import java.util.Map;
 

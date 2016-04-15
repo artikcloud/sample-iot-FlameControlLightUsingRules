@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.samsungsami.example.samirules;
+package cloud.artik.example.rules;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -86,11 +86,11 @@ public class RuleActivity extends Activity {
 
         setTitle(R.string.device_monitor_title);
 
-        SAMISession.getInstance().setContext(this);
-        smartLightDeviceID.setText("Device ID: " + SAMISession.SMART_LIGHT_DEVICE_ID);
-        smartLightDeviceName.setText("Device Name: " + SAMISession.SMART_LIGHT_DEVICE_NAME);
-        fireDetectorDeviceID.setText("Device ID: " + SAMISession.FIRE_DETECTOR_DEVICE_ID);
-        fireDetectorDeviceName.setText("Device Name: " + SAMISession.FIRE_DETECTOR_DEVICE_NAME);
+        ArtikCloudSession.getInstance().setContext(this);
+        smartLightDeviceID.setText("Device ID: " + ArtikCloudSession.SMART_LIGHT_DEVICE_ID);
+        smartLightDeviceName.setText("Device Name: " + ArtikCloudSession.SMART_LIGHT_DEVICE_NAME);
+        fireDetectorDeviceID.setText("Device ID: " + ArtikCloudSession.FIRE_DETECTOR_DEVICE_ID);
+        fireDetectorDeviceName.setText("Device Name: " + ArtikCloudSession.FIRE_DETECTOR_DEVICE_NAME);
 
         mCreateRuleBtn = (Button)findViewById(R.id.createRuleBtn);
         mCreateRuleBtn.setOnClickListener(new View.OnClickListener() {
@@ -165,8 +165,8 @@ public class RuleActivity extends Activity {
         super.onResume();
         LocalBroadcastManager.getInstance(this).registerReceiver(mWSUpdateReceiver,
                 makeWebsocketUpdateIntentFilter());
-        SAMISession.getInstance().connectFirehoseWS();//non blocking
-        if (SAMISession.getInstance().canCallRulesApi()) {
+        ArtikCloudSession.getInstance().connectFirehoseWS();//non blocking
+        if (ArtikCloudSession.getInstance().canCallRulesApi()) {
             mGetRulesBtn.setEnabled(true);
         }
     }
@@ -174,7 +174,7 @@ public class RuleActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        SAMISession.getInstance().disconnectFirehoseWS();
+        ArtikCloudSession.getInstance().disconnectFirehoseWS();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mWSUpdateReceiver);
     }
 
@@ -186,10 +186,10 @@ public class RuleActivity extends Activity {
 
     private static IntentFilter makeWebsocketUpdateIntentFilter() {
         final IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(SAMISession.WEBSOCKET_LIVE_ONOPEN);
-        intentFilter.addAction(SAMISession.WEBSOCKET_LIVE_ONMSG);
-        intentFilter.addAction(SAMISession.WEBSOCKET_LIVE_ONCLOSE);
-        intentFilter.addAction(SAMISession.WEBSOCKET_LIVE_ONERROR);
+        intentFilter.addAction(ArtikCloudSession.WEBSOCKET_LIVE_ONOPEN);
+        intentFilter.addAction(ArtikCloudSession.WEBSOCKET_LIVE_ONMSG);
+        intentFilter.addAction(ArtikCloudSession.WEBSOCKET_LIVE_ONCLOSE);
+        intentFilter.addAction(ArtikCloudSession.WEBSOCKET_LIVE_ONERROR);
         return intentFilter;
     }
 
@@ -197,16 +197,16 @@ public class RuleActivity extends Activity {
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
-            if (SAMISession.WEBSOCKET_LIVE_ONOPEN.equals(action)) {
+            if (ArtikCloudSession.WEBSOCKET_LIVE_ONOPEN.equals(action)) {
                 displayLiveStatus(LIVE_HEADER + CONNECTED);
-            } else if (SAMISession.WEBSOCKET_LIVE_ONMSG.equals(action)) {
-                int deviceIndex = intent.getIntExtra(SAMISession.DEVICE_INDEX, -1);
-                 String status = intent.getStringExtra(SAMISession.DEVICE_DATA);
-                String updateTime = intent.getStringExtra(SAMISession.TIMESTEP);
+            } else if (ArtikCloudSession.WEBSOCKET_LIVE_ONMSG.equals(action)) {
+                int deviceIndex = intent.getIntExtra(ArtikCloudSession.DEVICE_INDEX, -1);
+                 String status = intent.getStringExtra(ArtikCloudSession.DEVICE_DATA);
+                String updateTime = intent.getStringExtra(ArtikCloudSession.TIMESTEP);
                 displayDeviceStatus(deviceIndex, status, updateTime);
-            } else if (SAMISession.WEBSOCKET_LIVE_ONCLOSE.equals(action) ||
-                SAMISession.WEBSOCKET_LIVE_ONERROR.equals(action)) {
-                displayLiveStatus(LIVE_HEADER + intent.getStringExtra(SAMISession.ERROR));
+            } else if (ArtikCloudSession.WEBSOCKET_LIVE_ONCLOSE.equals(action) ||
+                ArtikCloudSession.WEBSOCKET_LIVE_ONERROR.equals(action)) {
+                displayLiveStatus(LIVE_HEADER + intent.getStringExtra(ArtikCloudSession.ERROR));
             }
         }
     };
@@ -239,7 +239,7 @@ public class RuleActivity extends Activity {
         protected UserEnvelope doInBackground(Void... params) {
             UserEnvelope retVal = null;
             try {
-                retVal= SAMISession.getInstance().getUsersApi().self();
+                retVal= ArtikCloudSession.getInstance().getUsersApi().self();
             } catch (Exception e) {
                 Log.v(TAG, "::doInBackground run into Exception");
                 e.printStackTrace();
@@ -260,9 +260,9 @@ public class RuleActivity extends Activity {
             return;
         }
         displayLiveStatus("Start connecting to /live for " + user.getFullName());
-        SAMISession.getInstance().setUserId(user.getId());
-        SAMISession.getInstance().connectFirehoseWSBlocking();
-        if (SAMISession.getInstance().canCallRulesApi()) {
+        ArtikCloudSession.getInstance().setUserId(user.getId());
+        ArtikCloudSession.getInstance().connectFirehoseWSBlocking();
+        if (ArtikCloudSession.getInstance().canCallRulesApi()) {
             mGetRulesBtn.setEnabled(true);
         }
     }
@@ -275,7 +275,7 @@ class CreateRuleInBackground extends AsyncTask<Void, Void, String> {
         String retVal = null;
         try {
             Rule rule = generateARule();
-            retVal = SAMISession.getInstance().getRulesApi().postRule(rule);
+            retVal = ArtikCloudSession.getInstance().getRulesApi().postRule(rule);
         } catch (Exception e) {
             Log.v(TAG, "::doInBackground run into Exception");
             e.printStackTrace();
@@ -314,7 +314,7 @@ class CreateRuleInBackground extends AsyncTask<Void, Void, String> {
         protected String doInBackground(Void... params) {
             String retVal = null;
             try {
-                retVal = SAMISession.getInstance().getRulesApi().getRules();
+                retVal = ArtikCloudSession.getInstance().getRulesApi().getRules();
             } catch (Exception e) {
                 Log.v(TAG, "::doInBackground run into Exception");
                 e.printStackTrace();
@@ -362,7 +362,7 @@ class CreateRuleInBackground extends AsyncTask<Void, Void, String> {
         protected String doInBackground(Void... params) {
             String retVal = null;
             try {
-                retVal = SAMISession.getInstance().getRulesApi().deleteRule(mRuleIds[mRuleIdx]);
+                retVal = ArtikCloudSession.getInstance().getRulesApi().deleteRule(mRuleIds[mRuleIdx]);
             } catch (Exception e) {
                 Log.v(TAG, "::doInBackground run into Exception with rule index" + mRuleIdx);
                 e.printStackTrace();

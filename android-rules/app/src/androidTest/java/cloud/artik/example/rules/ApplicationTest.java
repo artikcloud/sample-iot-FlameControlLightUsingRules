@@ -1,4 +1,4 @@
-package io.samsungsami.example.samirules;
+package cloud.artik.example.rules;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

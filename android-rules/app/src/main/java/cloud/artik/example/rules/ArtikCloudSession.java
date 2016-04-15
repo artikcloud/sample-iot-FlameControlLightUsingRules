@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.samsungsami.example.samirules;
+package cloud.artik.example.rules;
 
 import android.content.Context;
 import android.content.Intent;
@@ -33,16 +33,19 @@ import io.samsungsami.websocket.FirehoseWebSocket;
 import io.samsungsami.websocket.MessageOut;
 import io.samsungsami.websocket.SamiWebSocketCallback;
 
-public class SAMISession {
-    private final static String TAG = SAMISession.class.getSimpleName();
+public class ArtikCloudSession {
+    private final static String TAG = ArtikCloudSession.class.getSimpleName();
 
     // Copy them from the corresponding application in the Developer Portal
-    public static final String CLIENT_ID = "<YOUR CLIENT ID>";
+//YWU    public static final String CLIENT_ID = "<YOUR CLIENT ID>";
+    public static final String CLIENT_ID = "5a4f4252415545ea8eb1462e41255f4c";
     public static final String REDIRECT_URL = "android-app://redirect";
 
     // Copy them from the Device Info screen in the User Portal
-    public final static String SMART_LIGHT_DEVICE_ID = "<YOUR SMART LIGHT DEVICE ID>";
-    public final static String FIRE_DETECTOR_DEVICE_ID = "<YOUR FIRE DETECTOR DEVICE ID>";
+//YWU    public final static String SMART_LIGHT_DEVICE_ID = "<YOUR SMART LIGHT DEVICE ID>";
+//YWU    public final static String FIRE_DETECTOR_DEVICE_ID = "<YOUR FIRE DETECTOR DEVICE ID>";
+    public final static String SMART_LIGHT_DEVICE_ID = "0f8b470c6e214a76b914bc864e2c2b6b";
+    public final static String FIRE_DETECTOR_DEVICE_ID = "45176de99e424d98b1a3c42558bfccf4";
 
     public static final String SAMI_AUTH_BASE_URL = "https://accounts.samsungsami.io";
     public static final String SAMI_REST_URL = "https://api.samsungsami.io/v1.1";
@@ -53,17 +56,17 @@ public class SAMISession {
     public final static int FIRE_DETECTOR_INDEX = 0;
     public final static int SMART_LIGHT_INDEX = 1;
 
-    private static SAMISession ourInstance = new SAMISession();
+    private static ArtikCloudSession ourInstance = new ArtikCloudSession();
     private static Context ourContext;
 
     public final static String WEBSOCKET_LIVE_ONOPEN =
-            "io.samsungsami.example.iot.WEBSOCKET_LIVE_ONOPEN";
+            "cloud.artik.example.iot.WEBSOCKET_LIVE_ONOPEN";
     public final static String WEBSOCKET_LIVE_ONMSG =
-            "io.samsungsami.example.iot.WEBSOCKET_LIVE_ONMSG";
+            "cloud.artik.example.iot.WEBSOCKET_LIVE_ONMSG";
     public final static String WEBSOCKET_LIVE_ONCLOSE =
-            "io.samsungsami.example.iot.WEBSOCKET_LIVE_ONCLOSE";
+            "cloud.artik.example.iot.WEBSOCKET_LIVE_ONCLOSE";
     public final static String WEBSOCKET_LIVE_ONERROR =
-            "io.samsungsami.example.iot.WEBSOCKET_LIVE_ONERROR";
+            "cloud.artik.example.iot.WEBSOCKET_LIVE_ONERROR";
     public final static String DEVICE_INDEX = "dindex";
     public final static String SDID = "sdid";
     public final static String DEVICE_DATA = "data";
@@ -79,11 +82,11 @@ public class SAMISession {
 
     private FirehoseWebSocket mLive = null; //  end point: /live
 
-    public static SAMISession getInstance() {
+    public static ArtikCloudSession getInstance() {
         return ourInstance;
     }
 
-    private SAMISession() {
+    private ArtikCloudSession() {
         mDeviceIDArray = new ArrayList<>();
 
         mDeviceIDArray.add(FIRE_DETECTOR_INDEX, FIRE_DETECTOR_DEVICE_ID);
@@ -124,8 +127,8 @@ public class SAMISession {
 
     public String getAuthorizationRequestUri() {
         //example: https://accounts.samsungsami.io/authorize?client=mobile&client_id=xxxx&response_type=token&redirect_uri=http://localhost:81/samidemo/index.php
-        return SAMISession.SAMI_AUTH_BASE_URL + "/authorize?client=mobile&response_type=token&" +
-                "client_id=" + SAMISession.CLIENT_ID + "&redirect_uri=" + SAMISession.REDIRECT_URL;
+        return ArtikCloudSession.SAMI_AUTH_BASE_URL + "/authorize?client=mobile&response_type=token&" +
+                "client_id=" + ArtikCloudSession.CLIENT_ID + "&redirect_uri=" + ArtikCloudSession.REDIRECT_URL;
     }
 
     public void reset() {

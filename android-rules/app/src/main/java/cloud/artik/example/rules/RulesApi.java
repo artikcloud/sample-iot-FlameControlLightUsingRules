@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.samsungsami.example.samirules;
+package cloud.artik.example.rules;
 
 import java.util.HashMap;
 import java.util.Map;

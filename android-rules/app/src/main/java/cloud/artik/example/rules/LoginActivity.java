@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.samsungsami.example.samirules;
+package cloud.artik.example.rules;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -25,8 +25,8 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 
-public class SAMILoginActivity extends Activity {
-    static final String TAG = "SAMILoginActivity";
+public class LoginActivity extends Activity {
+    static final String TAG = "LoginActivity";
 
     private View mLoginView;
     private WebView mWebView;
@@ -55,7 +55,7 @@ public class SAMILoginActivity extends Activity {
         });
 
         // Reset to start a new session cleanly
-        SAMISession.getInstance().reset();
+        ArtikCloudSession.getInstance().reset();
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -68,8 +68,8 @@ public class SAMILoginActivity extends Activity {
         mWebView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String uri) {
-                if (uri.startsWith(SAMISession.REDIRECT_URL)) {
-                    // Redirect URL has format http://localhost:81/samidemo/index.php#expires_in=1209600&token_type=bearer&access_token=xxxx
+                if (uri.startsWith(ArtikCloudSession.REDIRECT_URL)) {
+                    // Redirect URL has format http://localhost:81/acdemo/index.php#expires_in=1209600&token_type=bearer&access_token=xxxx
                     // Extract OAuth2 access_token in URL
                     if (uri.indexOf("access_token=") != -1) {
                         String accessToken;
@@ -88,7 +88,7 @@ public class SAMILoginActivity extends Activity {
             }
         });
 
-        String url = SAMISession.getInstance().getAuthorizationRequestUri();
+        String url = ArtikCloudSession.getInstance().getAuthorizationRequestUri();
         Log.v(TAG, "webview loading url: " + url);
         mWebView.loadUrl(url);
     }
@@ -97,12 +97,12 @@ public class SAMILoginActivity extends Activity {
     private void onGetAccessToken(String accessToken)
     {
         Log.d(TAG, "onGetAccessToken(" + accessToken +")");
-        SAMISession.getInstance().setAccessToken(accessToken);
-        SAMISession.getInstance().setupSamiRestApis();
-        startSamiActivity();
+        ArtikCloudSession.getInstance().setAccessToken(accessToken);
+        ArtikCloudSession.getInstance().setupSamiRestApis();
+        startRuleActivity();
     }
 
-    private void startSamiActivity() {
+    private void startRuleActivity() {
         Intent activityIntent = new Intent(this, RuleActivity.class);
         startActivity(activityIntent);
     }

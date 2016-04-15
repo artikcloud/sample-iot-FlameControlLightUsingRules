@@ -24,7 +24,7 @@
     android:paddingLeft="16dp"
     android:paddingRight="16dp"
     android:paddingTop="16dp"
-    tools:context="io.samsungsami.example.SAMInBLEws.SAMILoginActivity" >
+    tools:context="cloud.artik.example.SAMInBLEws.SAMILoginActivity" >
 
     <RelativeLayout
         android:id="@+id/ask_for_login"
