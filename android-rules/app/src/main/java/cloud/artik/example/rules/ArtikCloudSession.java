@@ -21,17 +21,20 @@ import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.squareup.okhttp.OkHttpClient;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 
-import io.samsungsami.api.UsersApi;
-import io.samsungsami.websocket.Acknowledgement;
-import io.samsungsami.websocket.ActionOut;
-import io.samsungsami.websocket.Error;
-import io.samsungsami.websocket.FirehoseWebSocket;
-import io.samsungsami.websocket.MessageOut;
-import io.samsungsami.websocket.SamiWebSocketCallback;
+import cloud.artik.api.UsersApi;
+import cloud.artik.client.ApiClient;
+import cloud.artik.model.Acknowledgement;
+import cloud.artik.model.ActionOut;
+import cloud.artik.model.MessageOut;
+import cloud.artik.model.WebSocketError;
+import cloud.artik.websocket.ArtikCloudWebSocketCallback;
+import cloud.artik.websocket.FirehoseWebSocket;
 
 public class ArtikCloudSession {
     private final static String TAG = ArtikCloudSession.class.getSimpleName();
@@ -47,8 +50,8 @@ public class ArtikCloudSession {
     public final static String SMART_LIGHT_DEVICE_ID = "0f8b470c6e214a76b914bc864e2c2b6b";
     public final static String FIRE_DETECTOR_DEVICE_ID = "45176de99e424d98b1a3c42558bfccf4";
 
-    public static final String SAMI_AUTH_BASE_URL = "https://accounts.samsungsami.io";
-    public static final String SAMI_REST_URL = "https://api.samsungsami.io/v1.1";
+    public static final String ARTIK_CLOUD_AUTH_BASE_URL = "https://accounts.artik.cloud";
+    public static final String SAMI_REST_URL = "https://api.artik.cloud/v1.1";
 
     private static final String AUTHORIZATION = "Authorization";
     public final static String SMART_LIGHT_DEVICE_NAME = "Smart Light";
@@ -75,12 +78,13 @@ public class ArtikCloudSession {
 
     private ArrayList<String> mDeviceIDArray;
 
+    private ApiClient mApiClient = null;
     private UsersApi mUsersApi = null;
     private RulesApi mRulesApi = null;
     private String mAccessToken = null;
     private String mUserId = null;
 
-    private FirehoseWebSocket mLive = null; //  end point: /live
+    private FirehoseWebSocket mFirehoseWS = null; //  end point: /live
 
     public static ArtikCloudSession getInstance() {
         return ourInstance;
@@ -106,11 +110,12 @@ public class ArtikCloudSession {
         mAccessToken = token;
     }
 
-    public void setupSamiRestApis() {
-        // Invoke the appropriate API
-        mUsersApi = new UsersApi();
-        mUsersApi.setBasePath(SAMI_REST_URL);
-        mUsersApi.addHeader(AUTHORIZATION, "bearer " + mAccessToken);
+    public void setupArtikCloudRestApis() {
+        mApiClient = new ApiClient();
+        mApiClient.setAccessToken(mAccessToken);
+        mApiClient.setDebugging(true);
+
+        mUsersApi = new UsersApi(mApiClient);
 
         mRulesApi = new RulesApi();
         mRulesApi.setBasePath(SAMI_REST_URL);
@@ -127,8 +132,9 @@ public class ArtikCloudSession {
 
     public String getAuthorizationRequestUri() {
         //example: https://accounts.samsungsami.io/authorize?client=mobile&client_id=xxxx&response_type=token&redirect_uri=http://localhost:81/samidemo/index.php
-        return ArtikCloudSession.SAMI_AUTH_BASE_URL + "/authorize?client=mobile&response_type=token&" +
-                "client_id=" + ArtikCloudSession.CLIENT_ID + "&redirect_uri=" + ArtikCloudSession.REDIRECT_URL;
+        //https://accounts.artik.cloud/authorize?client=mobile&client_id=xxxx&response_type=token&redirect_uri=http://localhost:8000/acdemo/index.php
+        return ARTIK_CLOUD_AUTH_BASE_URL + "/authorize?client=mobile&response_type=token&" +
+                "client_id=" + CLIENT_ID + "&redirect_uri=" + REDIRECT_URL;
     }
 
     public void reset() {
@@ -136,7 +142,7 @@ public class ArtikCloudSession {
         mRulesApi = null;
         mAccessToken = null;
         mUserId = null;
-        mLive = null;
+        mFirehoseWS = null;
     }
 
     public void setUserId(String uid) {
@@ -146,7 +152,7 @@ public class ArtikCloudSession {
         mUserId = uid;
     }
 
-    private void createLiveWebsocket() {
+    private void createFirehoseWebsocket() {
         String sdids = "";
         int numId = mDeviceIDArray.size();
         for (int i = 0; i < numId-1; ++i) {
@@ -155,17 +161,19 @@ public class ArtikCloudSession {
         sdids = sdids + mDeviceIDArray.get(numId - 1);
 
         try {
-            mLive = new FirehoseWebSocket(mAccessToken, sdids, null, mUserId, new SamiWebSocketCallback() {
+            OkHttpClient client = new OkHttpClient();
+            client.setRetryOnConnectionFailure(true);
+            mFirehoseWS = new FirehoseWebSocket(client, mAccessToken, null, sdids, null, mUserId, new ArtikCloudWebSocketCallback() {
                 @Override
-                public void onOpen(short i, String s) {
-                    Log.d(TAG, "connectLiveWebsocket: onOpen()");
+                public void onOpen(int i, String s) {
+                    Log.d(TAG, "FirehoseWebSocket: onOpen()");
                     final Intent intent = new Intent(WEBSOCKET_LIVE_ONOPEN);
                     LocalBroadcastManager.getInstance(ourContext).sendBroadcast(intent);
                 }
 
                 @Override
                 public void onMessage(MessageOut messageOut) {
-                    Log.d(TAG, "connectLiveWebsocket: onMessage(" + messageOut.toString() + ")");
+                    Log.d(TAG, "FirehoseWebSocket: onMessage(" + messageOut.toString() + ")");
                     String sdid = messageOut.getSdid();
                     int dIdx;
                     if (sdid.equals(mDeviceIDArray.get(0))) {
@@ -195,20 +203,23 @@ public class ArtikCloudSession {
                 @Override
                 public void onClose(int code, String reason, boolean remote) {
                     final Intent intent = new Intent(WEBSOCKET_LIVE_ONCLOSE);
-                    intent.putExtra("error", "mLive is closed. code: " + code + "; reason: " + reason);
+                    intent.putExtra("error", "mFirehoseWS is closed. code: " + code + "; reason: " + reason);
                     LocalBroadcastManager.getInstance(ourContext).sendBroadcast(intent);
                 }
 
                 @Override
-                public void onError(Error ex) {
+                public void onError(WebSocketError ex) {
                     final Intent intent = new Intent(WEBSOCKET_LIVE_ONERROR);
-                    intent.putExtra("error", "mLive error: " + ex.getMessage());
+                    intent.putExtra("error", "mFirehoseWS error: " + ex.getMessage());
                     LocalBroadcastManager.getInstance(ourContext).sendBroadcast(intent);
                 }
+
+                @Override
+                public void onPing(long timestamp) {
+                    Log.d(TAG, "FirehoseWebSocket::onPing: " + timestamp);
+                }
             });
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (URISyntaxException | IOException e) {
             e.printStackTrace();
         }
     }
@@ -217,10 +228,14 @@ public class ArtikCloudSession {
      * Closes a websocket /live connection
      */
     public void disconnectFirehoseWS() {
-        if (mLive != null) {
-            mLive.close();
+        if (mFirehoseWS != null) {
+            try {
+                mFirehoseWS.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-        mLive = null;
+        mFirehoseWS = null;
     }
 
     public void connectFirehoseWSBlocking() {
@@ -228,10 +243,10 @@ public class ArtikCloudSession {
             Log.w(TAG, "It is not ready to connect firehose WebSocket!");
             return;
         }
-        createLiveWebsocket();
+        createFirehoseWebsocket();
         try {
-            mLive.connectBlocking();
-        } catch (InterruptedException e) {
+            mFirehoseWS.connectBlocking();
+        } catch (InterruptedException | IOException e) {
             e.printStackTrace();
         }
     }
@@ -241,8 +256,12 @@ public class ArtikCloudSession {
             Log.w(TAG, "It is not ready to connect firehose WebSocket!");
             return;
         }
-        createLiveWebsocket();
-        mLive.connect();
+        createFirehoseWebsocket();
+        try {
+            mFirehoseWS.connect();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public boolean isReadyToConnectWebSocketLive() {
