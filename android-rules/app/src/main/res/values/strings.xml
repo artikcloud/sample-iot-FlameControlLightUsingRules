@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">SAMIrules</string>
+    <string name="rules_instruction">"Click a button to get or create or delete LIGHT ON and LIGHT OFF rules"</string>
+    <string name="device_name">Device Name</string>
+    <string name="device_id">Device ID</string>
+    <string name="device_status">Device Status</string>
+    <string name="status_update_time">Status Update Time</string>
+    <string name="action_settings">Settings</string>
+    <string name="websocket_live_status">WebSocket /live status</string>
+    <string name="fire_detector_live_status">Flame detector /live status</string>
+
+    <string name="device_monitor_title">Home Device</string>
+    <string name="unknown_device">Unknown device</string>
+    <string name="unknown_states">Unknown states</string>
+    <string name="unknown_update_time">Unknown update time</string>
+
+    <string name="rules_apicall_response">RULEs api call response is here...</string>
+
+
+</resources>
