@@ -27,7 +27,7 @@ The full SAMI API specification with examples can be found at http://developer.s
 
 Peek into advanced sample applications at https://developer.samsungsami.io/sami/samples/
 
-To create and manage your services and devices on SAMI, visit developer portal at http://devportal.samsungsami.io
+To create and manage your services and devices on SAMI, visit the Developer Dashboard at http://devportal.samsungsami.io
 
 License and Copyright
 ---------------------
