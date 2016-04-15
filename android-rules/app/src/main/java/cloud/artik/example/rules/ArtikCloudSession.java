@@ -39,12 +39,12 @@ import cloud.artik.websocket.FirehoseWebSocket;
 public class ArtikCloudSession {
     private final static String TAG = ArtikCloudSession.class.getSimpleName();
 
-    // Copy them from the corresponding application in the Developer Portal
+    // Copy them from the corresponding application in the Developer Dashboard
 //YWU    public static final String CLIENT_ID = "<YOUR CLIENT ID>";
     public static final String CLIENT_ID = "5a4f4252415545ea8eb1462e41255f4c";
     public static final String REDIRECT_URL = "android-app://redirect";
 
-    // Copy them from the Device Info screen in the User Portal
+    // Copy them from the Device Info screen in My ARTIK Cloud
 //YWU    public final static String SMART_LIGHT_DEVICE_ID = "<YOUR SMART LIGHT DEVICE ID>";
 //YWU    public final static String FIRE_DETECTOR_DEVICE_ID = "<YOUR FIRE DETECTOR DEVICE ID>";
     public final static String SMART_LIGHT_DEVICE_ID = "0f8b470c6e214a76b914bc864e2c2b6b";
