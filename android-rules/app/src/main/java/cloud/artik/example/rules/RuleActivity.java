@@ -38,9 +38,9 @@ import java.text.DateFormat;
 import java.util.Date;
 import java.util.HashMap;
 
-import io.samsungsami.model.User;
-import io.samsungsami.model.UserEnvelope;
-import io.samsungsami.client.JsonUtil;
+import cloud.artik.model.User;
+import cloud.artik.model.UserEnvelope;
+import cloud.artik.client.JSON;
 
 
 public class RuleActivity extends Activity {
@@ -239,7 +239,7 @@ public class RuleActivity extends Activity {
         protected UserEnvelope doInBackground(Void... params) {
             UserEnvelope retVal = null;
             try {
-                retVal= ArtikCloudSession.getInstance().getUsersApi().self();
+                retVal= ArtikCloudSession.getInstance().getUsersApi().getSelf();
             } catch (Exception e) {
                 Log.v(TAG, "::doInBackground run into Exception");
                 e.printStackTrace();
@@ -439,7 +439,8 @@ class CreateRuleInBackground extends AsyncTask<Void, Void, String> {
 
         rule.setRule(ruleBody);
         try {
-            String ruleString = JsonUtil.getJsonMapper().writeValueAsString(rule);
+            JSON json = new JSON(ArtikCloudSession.getInstance().getAPiClient());//YWU new code
+            String ruleString = json.serialize(rule);//YWU oldJsonUtil.getJsonMapper().writeValueAsString(rule);
             Log.v("", "generateARule rule:" + ruleString);
         } catch (Exception e) {
             Log.v("", "generateARule run into Exception");

@@ -122,6 +122,11 @@ public class ArtikCloudSession {
         mRulesApi.addHeader(AUTHORIZATION, "bearer " + mAccessToken);
     }
 
+    // YWU
+    public ApiClient getAPiClient() {
+        return mApiClient;
+    }
+
     public UsersApi getUsersApi() {
         return mUsersApi;
     }
