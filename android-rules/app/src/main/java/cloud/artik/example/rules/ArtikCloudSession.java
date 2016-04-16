@@ -28,6 +28,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 
 import cloud.artik.api.UsersApi;
+import cloud.artik.api.RulesApi;
 import cloud.artik.client.ApiClient;
 import cloud.artik.model.Acknowledgement;
 import cloud.artik.model.ActionOut;
@@ -116,10 +117,7 @@ public class ArtikCloudSession {
         mApiClient.setDebugging(true);
 
         mUsersApi = new UsersApi(mApiClient);
-
-        mRulesApi = new RulesApi();
-        mRulesApi.setBasePath(SAMI_REST_URL);
-        mRulesApi.addHeader(AUTHORIZATION, "bearer " + mAccessToken);
+        mRulesApi = new RulesApi(mApiClient);
     }
 
     // YWU

@@ -31,16 +31,18 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 
+import cloud.artik.client.JSON;
+import cloud.artik.model.OutputRule;
+import cloud.artik.model.RuleCreationInfo;
+import cloud.artik.model.RuleEnvelope;
+import cloud.artik.model.RulesEnvelope;
 import cloud.artik.model.User;
 import cloud.artik.model.UserEnvelope;
-import cloud.artik.client.JSON;
 
 
 public class RuleActivity extends Activity {
@@ -268,14 +270,14 @@ public class RuleActivity extends Activity {
     }
 
 ////// RULES
-class CreateRuleInBackground extends AsyncTask<Void, Void, String> {
+class CreateRuleInBackground extends AsyncTask<Void, Void, RuleEnvelope> {
     final static String TAG = "CreateRuleInBackground";
     @Override
-    protected String doInBackground(Void... params) {
-        String retVal = null;
+    protected RuleEnvelope doInBackground(Void... params) {
+        RuleEnvelope retVal = null;
         try {
-            Rule rule = generateARule();
-            retVal = ArtikCloudSession.getInstance().getRulesApi().postRule(rule);
+            RuleCreationInfo rule = generateARule();
+            retVal = ArtikCloudSession.getInstance().getRulesApi().createRule(rule, null);
         } catch (Exception e) {
             Log.v(TAG, "::doInBackground run into Exception");
             e.printStackTrace();
@@ -285,22 +287,21 @@ class CreateRuleInBackground extends AsyncTask<Void, Void, String> {
     }
 
     @Override
-    protected void onPostExecute(String result) {
+    protected void onPostExecute(RuleEnvelope result) {
         Log.v(TAG, "::response after posting a rule: " + result);
         try {
-            JSONObject jsonObject = new JSONObject(result);
-            JSONObject ruleObj = jsonObject.getJSONObject("data");
+            OutputRule ruleObj = result.getData();
             if (mRuleIds == null) {
                 mRuleIds = new String[NUM_OF_RULES];
             }
-            mRuleIds[mRuleIdx] = (String) ruleObj.get("id");
+            mRuleIds[mRuleIdx] = ruleObj.getId();
             mRuleIdx++;
             if (mRuleIdx < NUM_OF_RULES) {
                 new CreateRuleInBackground().execute();
             } else {
                 handleBtnsEnable();
             }
-            displayRulesApiCallResponse(TAG + " for rule index " + (mRuleIdx - 1) + " response:\n" + result);
+            displayRulesApiCallResponse(TAG + " for rule index " + (mRuleIdx - 1) + " response:\n" + result.toString());
         } catch (Exception e) {
             Log.v(TAG, "::onPostExecute run into Exception");
             e.printStackTrace();
@@ -308,13 +309,13 @@ class CreateRuleInBackground extends AsyncTask<Void, Void, String> {
     }
 }
 
-    class GetRulesInBackground extends AsyncTask<Void, Void, String> {
+    class GetRulesInBackground extends AsyncTask<Void, Void, RulesEnvelope> {
         final static String TAG = "GetRulesInBackground";
         @Override
-        protected String doInBackground(Void... params) {
-            String retVal = null;
+        protected RulesEnvelope doInBackground(Void... params) {
+            RulesEnvelope retVal = null;
             try {
-                retVal = ArtikCloudSession.getInstance().getRulesApi().getRules();
+                retVal = ArtikCloudSession.getInstance().getUsersApi().getUserRules(null, true, false, null, null);
             } catch (Exception e) {
                 Log.v(TAG, "::doInBackground run into Exception");
                 e.printStackTrace();
@@ -324,26 +325,25 @@ class CreateRuleInBackground extends AsyncTask<Void, Void, String> {
         }
 
         @Override
-        protected void onPostExecute(String result) {
-            Log.v(TAG, "::response after getting rules: " + result);
+        protected void onPostExecute(RulesEnvelope result) {
+            Log.v(TAG, "::response after getting rules: " + result.toString());
             try {
-                String displayInfo = result;
-                JSONObject jsonObject = new JSONObject(result);
-                int receivedRules = jsonObject.getInt("count");
+                String displayInfo = result.toString();
+                int receivedRules = result.getCount();
                 mRuleIdx = 0;
-                if (jsonObject.getInt("count") <= 0) {
+                if (receivedRules <= 0) {
                     mRuleIds = null;
                 } else {
-                    JSONArray rulesObj = jsonObject.getJSONArray("data");
+                    List<OutputRule> rulesObj = result.getData().getRules();
                     int count = receivedRules > NUM_OF_RULES? NUM_OF_RULES : receivedRules;
                     mRuleIds = new String[NUM_OF_RULES];
-                    displayInfo = "total:" + jsonObject.getInt("total") + ",count:" + receivedRules +'\n';
+                    displayInfo = "total:" + result.getTotal() + ", count:" + receivedRules +'\n';
 
                     for (int i = 0; i < count; i++) {
-                        JSONObject thisRule = (JSONObject)rulesObj.get(i);
-                        mRuleIds[i] = (String)thisRule.get("id");
+                        OutputRule thisRule = rulesObj.get(i);
+                        mRuleIds[i] = thisRule.getId();
                         displayInfo += "id:" + mRuleIds[i] + '\n';
-                        displayInfo += "description:" + thisRule.get("description") +'\n';
+                        displayInfo += "description:" + thisRule.getDescription() +'\n';
                     }
                 }
                 handleBtnsEnable();
@@ -356,11 +356,11 @@ class CreateRuleInBackground extends AsyncTask<Void, Void, String> {
         }
     }
 
-    class DeleteRuleInBackground extends AsyncTask<Void, Void, String> {
+    class DeleteRuleInBackground extends AsyncTask<Void, Void, RuleEnvelope> {
         final static String TAG = "DeleteRuleInBackground";
         @Override
-        protected String doInBackground(Void... params) {
-            String retVal = null;
+        protected RuleEnvelope doInBackground(Void... params) {
+            RuleEnvelope retVal = null;
             try {
                 retVal = ArtikCloudSession.getInstance().getRulesApi().deleteRule(mRuleIds[mRuleIdx]);
             } catch (Exception e) {
@@ -372,7 +372,7 @@ class CreateRuleInBackground extends AsyncTask<Void, Void, String> {
         }
 
         @Override
-        protected void onPostExecute(String result) {
+        protected void onPostExecute(RuleEnvelope result) {
             Log.v(TAG, "::response after deleting a rule with idx " + mRuleIdx + " : " + result);
             try {
                 if (mRuleIdx == NUM_OF_RULES - 1) { //This is the last rule to delete
@@ -384,7 +384,7 @@ class CreateRuleInBackground extends AsyncTask<Void, Void, String> {
                     Log.d(TAG, "prepare to deleting rule with idx " + mRuleIdx);
                     new DeleteRuleInBackground().execute();
                 }
-                displayRulesApiCallResponse(TAG + " response:\n" + result);
+                displayRulesApiCallResponse(TAG + " response:\n" + result.toString());
             } catch (Exception e) {
                 Log.v(TAG, "::onPostExecute run into Exception");
                 e.printStackTrace();
@@ -393,8 +393,8 @@ class CreateRuleInBackground extends AsyncTask<Void, Void, String> {
         }
     }
 
-    private Rule generateARule() {
-        Rule rule = new Rule();
+    private RuleCreationInfo generateARule() {
+        RuleCreationInfo rule = new RuleCreationInfo();
         boolean onFireTriggerValue;
         String actionName;
         switch (mRuleIdx) {
