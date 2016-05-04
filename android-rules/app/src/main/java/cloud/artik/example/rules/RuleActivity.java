@@ -277,7 +277,7 @@ class CreateRuleInBackground extends AsyncTask<Void, Void, RuleEnvelope> {
         RuleEnvelope retVal = null;
         try {
             RuleCreationInfo rule = generateARule();
-            retVal = ArtikCloudSession.getInstance().getRulesApi().createRule(rule, null);
+            retVal = ArtikCloudSession.getInstance().getRulesApi().createRule(rule, ArtikCloudSession.getInstance().getUserId());
         } catch (Exception e) {
             Log.v(TAG, "::doInBackground run into Exception");
             e.printStackTrace();
@@ -315,7 +315,7 @@ class CreateRuleInBackground extends AsyncTask<Void, Void, RuleEnvelope> {
         protected RulesEnvelope doInBackground(Void... params) {
             RulesEnvelope retVal = null;
             try {
-                retVal = ArtikCloudSession.getInstance().getUsersApi().getUserRules(null, true, false, null, null);
+                retVal = ArtikCloudSession.getInstance().getUsersApi().getUserRules(ArtikCloudSession.getInstance().getUserId(), true, false, null, null);
             } catch (Exception e) {
                 Log.v(TAG, "::doInBackground run into Exception");
                 e.printStackTrace();
@@ -334,7 +334,7 @@ class CreateRuleInBackground extends AsyncTask<Void, Void, RuleEnvelope> {
                 if (receivedRules <= 0) {
                     mRuleIds = null;
                 } else {
-                    List<OutputRule> rulesObj = result.getData().getRules();
+                    List<OutputRule> rulesObj = result.getData();
                     int count = receivedRules > NUM_OF_RULES? NUM_OF_RULES : receivedRules;
                     mRuleIds = new String[NUM_OF_RULES];
                     displayInfo = "total:" + result.getTotal() + ", count:" + receivedRules +'\n';
@@ -439,8 +439,8 @@ class CreateRuleInBackground extends AsyncTask<Void, Void, RuleEnvelope> {
 
         rule.setRule(ruleBody);
         try {
-            JSON json = new JSON(ArtikCloudSession.getInstance().getAPiClient());//YWU new code
-            String ruleString = json.serialize(rule);//YWU oldJsonUtil.getJsonMapper().writeValueAsString(rule);
+            JSON json = new JSON(ArtikCloudSession.getInstance().getUsersApi().getApiClient());
+            String ruleString = json.serialize(rule);
             Log.v("", "generateARule rule:" + ruleString);
         } catch (Exception e) {
             Log.v("", "generateARule run into Exception");

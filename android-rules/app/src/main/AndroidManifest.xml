@@ -19,7 +19,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name="cloud.artik.example.RuleActivity" android:label="RuleActivity"/>
+        <activity android:name=".RuleActivity" android:label="RuleActivity"/>
     </application>
 
 </manifest>

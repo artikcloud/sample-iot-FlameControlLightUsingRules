@@ -36,7 +36,7 @@
         android:id="@+id/hello_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Please login to SAMI" />
+        android:text="Please login to ARTIK Cloud" />
 
      <Button
         android:id="@+id/btn"

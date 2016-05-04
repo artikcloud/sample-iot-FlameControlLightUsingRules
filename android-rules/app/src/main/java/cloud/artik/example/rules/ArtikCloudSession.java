@@ -52,7 +52,6 @@ public class ArtikCloudSession {
     public final static String FIRE_DETECTOR_DEVICE_ID = "45176de99e424d98b1a3c42558bfccf4";
 
     public static final String ARTIK_CLOUD_AUTH_BASE_URL = "https://accounts.artik.cloud";
-    public static final String SAMI_REST_URL = "https://api.artik.cloud/v1.1";
 
     private static final String AUTHORIZATION = "Authorization";
     public final static String SMART_LIGHT_DEVICE_NAME = "Smart Light";
@@ -120,11 +119,6 @@ public class ArtikCloudSession {
         mRulesApi = new RulesApi(mApiClient);
     }
 
-    // YWU
-    public ApiClient getAPiClient() {
-        return mApiClient;
-    }
-
     public UsersApi getUsersApi() {
         return mUsersApi;
     }
@@ -132,6 +126,8 @@ public class ArtikCloudSession {
     public RulesApi getRulesApi() {
         return mRulesApi;
     }
+
+    public String getUserId() {return mUserId; }
 
     public String getAuthorizationRequestUri() {
         //example: https://accounts.samsungsami.io/authorize?client=mobile&client_id=xxxx&response_type=token&redirect_uri=http://localhost:81/samidemo/index.php

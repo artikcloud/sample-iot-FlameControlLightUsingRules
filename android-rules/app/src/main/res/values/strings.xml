@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Rules</string>
+    <string name="app_name">ACRules</string>
     <string name="rules_instruction">"Click a button to get or create or delete LIGHT ON and LIGHT OFF rules"</string>
     <string name="device_name">Device Name</string>
     <string name="device_id">Device ID</string>
