@@ -53,7 +53,6 @@ public class ArtikCloudSession {
 
     public static final String ARTIK_CLOUD_AUTH_BASE_URL = "https://accounts.artik.cloud";
 
-    private static final String AUTHORIZATION = "Authorization";
     public final static String SMART_LIGHT_DEVICE_NAME = "Smart Light";
     public final static String FIRE_DETECTOR_DEVICE_NAME = "Flame Detector";
     public final static int FIRE_DETECTOR_INDEX = 0;
@@ -78,7 +77,6 @@ public class ArtikCloudSession {
 
     private ArrayList<String> mDeviceIDArray;
 
-    private ApiClient mApiClient = null;
     private UsersApi mUsersApi = null;
     private RulesApi mRulesApi = null;
     private String mAccessToken = null;
@@ -111,12 +109,12 @@ public class ArtikCloudSession {
     }
 
     public void setupArtikCloudRestApis() {
-        mApiClient = new ApiClient();
-        mApiClient.setAccessToken(mAccessToken);
-        mApiClient.setDebugging(true);
+        ApiClient apiClient = new ApiClient();
+        apiClient.setAccessToken(mAccessToken);
+        apiClient.setDebugging(true);
 
-        mUsersApi = new UsersApi(mApiClient);
-        mRulesApi = new RulesApi(mApiClient);
+        mUsersApi = new UsersApi(apiClient);
+        mRulesApi = new RulesApi(apiClient);
     }
 
     public UsersApi getUsersApi() {
