@@ -27,8 +27,8 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 
-import cloud.artik.api.UsersApi;
 import cloud.artik.api.RulesApi;
+import cloud.artik.api.UsersApi;
 import cloud.artik.client.ApiClient;
 import cloud.artik.model.Acknowledgement;
 import cloud.artik.model.ActionOut;

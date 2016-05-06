@@ -21,7 +21,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -30,12 +29,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import cloud.artik.client.ApiCallback;
+import cloud.artik.client.ApiException;
 import cloud.artik.client.JSON;
 import cloud.artik.model.OutputRule;
 import cloud.artik.model.RuleCreationInfo;
@@ -100,7 +103,7 @@ public class RuleActivity extends Activity {
                 try {
                     Log.v(TAG, ": create a rule button is clicked.");
                     mRuleIdx = 0; //reset the index, starting from zero
-                    new CreateRuleInBackground().execute();
+                    createRules();
                 } catch (Exception e) {
                     Log.v(TAG, "Run into Exception");
                     e.printStackTrace();
@@ -113,7 +116,7 @@ public class RuleActivity extends Activity {
             public void onClick(View v) {
                 try {
                     Log.v(TAG, ": getRules button is clicked.");
-                    new GetRulesInBackground().execute();
+                    getRules();
                 } catch (Exception e) {
                     Log.v(TAG, "Run into Exception");
                     e.printStackTrace();
@@ -129,7 +132,7 @@ public class RuleActivity extends Activity {
                 try {
                     Log.v(TAG, ": delete button is clicked.");
                     mRuleIdx = 0; //reset the index, starting from zero
-                    new DeleteRuleInBackground().execute();
+                    deleteRule();
                 } catch (Exception e) {
                     Log.v(TAG, "Run into Exception");
                     e.printStackTrace();
@@ -137,7 +140,7 @@ public class RuleActivity extends Activity {
             }
         });
 
-        new GetUserInfoInBackground().execute();
+        getUserInfo();
 
     }
 
@@ -235,163 +238,145 @@ public class RuleActivity extends Activity {
         }
     }
 
-    class GetUserInfoInBackground extends AsyncTask<Void, Void, UserEnvelope> {
-        final static String TAG = "GetUserInfoInBackground";
-        @Override
-        protected UserEnvelope doInBackground(Void... params) {
-            UserEnvelope retVal = null;
-            try {
-                retVal= ArtikCloudSession.getInstance().getUsersApi().getSelf();
-            } catch (Exception e) {
-                Log.v(TAG, "::doInBackground run into Exception");
-                e.printStackTrace();
-            }
+    private void getUserInfo()
+    {
+        final String tag = TAG + " getSelfAsync";
+        try {
+            ArtikCloudSession.getInstance().getUsersApi().getSelfAsync(new ApiCallback<UserEnvelope>() {
+                @Override
+                public void onFailure(ApiException exc, int statusCode, Map<String, List<String>> map) {
+                    processFailure(tag, exc);
+                }
 
-            return retVal;
-        }
+                @Override
+                public void onSuccess(UserEnvelope result, int statusCode, Map<String, List<String>> map) {
+                    Log.v(tag, " onSuccess() self name = " + result.getData().getFullName());
+                    handleGetUserInfoSuccessOnUIThread(result.getData());
+                }
 
-        @Override
-        protected void onPostExecute(UserEnvelope result) {
-            Log.v(TAG, "::get self name = " + result.getData().getFullName());
-            onGetUserInfo(result.getData());
+                @Override
+                public void onUploadProgress(long bytes, long contentLen, boolean done) {
+                }
+
+                @Override
+                public void onDownloadProgress(long bytes, long contentLen, boolean done) {
+                }
+            });
+        } catch (ApiException exc) {
+            processFailure(tag, exc);
         }
     }
 
-    private void onGetUserInfo(User user) {
+    private void handleGetUserInfoSuccessOnUIThread(final User user) {
         if (user == null) {
             return;
         }
-        displayLiveStatus("Start connecting to /live for " + user.getFullName());
-        ArtikCloudSession.getInstance().setUserId(user.getId());
-        ArtikCloudSession.getInstance().connectFirehoseWSBlocking();
-        if (ArtikCloudSession.getInstance().canCallRulesApi()) {
-            mGetRulesBtn.setEnabled(true);
-        }
+        this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                displayLiveStatus("Start connecting to /live for " + user.getFullName());
+                ArtikCloudSession.getInstance().setUserId(user.getId());
+                ArtikCloudSession.getInstance().connectFirehoseWSBlocking();
+                if (ArtikCloudSession.getInstance().canCallRulesApi()) {
+                    mGetRulesBtn.setEnabled(true);
+                }
+
+            }
+        });
     }
 
 ////// RULES
-class CreateRuleInBackground extends AsyncTask<Void, Void, RuleEnvelope> {
-    final static String TAG = "CreateRuleInBackground";
-    @Override
-    protected RuleEnvelope doInBackground(Void... params) {
-        RuleEnvelope retVal = null;
+    private void createRules() {
+        final String tag = TAG + " createRuleAsync";
+        RuleCreationInfo rule = generateARule();
         try {
-            RuleCreationInfo rule = generateARule();
-            retVal = ArtikCloudSession.getInstance().getRulesApi().createRule(rule, ArtikCloudSession.getInstance().getUserId());
-        } catch (Exception e) {
-            Log.v(TAG, "::doInBackground run into Exception");
-            e.printStackTrace();
-        }
+            ArtikCloudSession.getInstance().getRulesApi().createRuleAsync(rule,
+                    ArtikCloudSession.getInstance().getUserId(),
+                    new ApiCallback<RuleEnvelope>() {
+                        @Override
+                        public void onFailure(ApiException exc, int statusCode, Map<String, List<String>> map) {
+                            processFailure(tag, exc);
+                        }
 
-        return retVal;
+                        @Override
+                        public void onSuccess(RuleEnvelope result, int statusCode, Map<String, List<String>> map) {
+                            Log.v(tag, "response after posting a rule: " + result);
+                            handleRuleCreationSuccessOnUIThread(result.getData());
+                        }
+
+                        @Override
+                        public void onUploadProgress(long bytes, long contentLen, boolean done) {
+                        }
+
+                        @Override
+                        public void onDownloadProgress(long bytes, long contentLen, boolean done) {
+                        }
+                    });
+        } catch (ApiException exc) {
+            processFailure(tag, exc);
+        }
     }
 
-    @Override
-    protected void onPostExecute(RuleEnvelope result) {
-        Log.v(TAG, "::response after posting a rule: " + result);
+    private void getRules() {
+        final String tag = TAG + " getUserRuleAsync";
         try {
-            OutputRule ruleObj = result.getData();
-            if (mRuleIds == null) {
-                mRuleIds = new String[NUM_OF_RULES];
-            }
-            mRuleIds[mRuleIdx] = ruleObj.getId();
-            mRuleIdx++;
-            if (mRuleIdx < NUM_OF_RULES) {
-                new CreateRuleInBackground().execute();
-            } else {
-                handleBtnsEnable();
-            }
-            displayRulesApiCallResponse(TAG + " for rule index " + (mRuleIdx - 1) + " response:\n" + result.toString());
-        } catch (Exception e) {
-            Log.v(TAG, "::onPostExecute run into Exception");
-            e.printStackTrace();
-        }
-    }
-}
+            ArtikCloudSession.getInstance().getUsersApi().getUserRulesAsync(
+                    ArtikCloudSession.getInstance().getUserId(), true, false, null, null,
+                    new ApiCallback<RulesEnvelope>() {
+                        @Override
+                        public void onFailure(ApiException exc, int statusCode, Map<String, List<String>> map) {
+                            processFailure(tag, exc);
+                        }
 
-    class GetRulesInBackground extends AsyncTask<Void, Void, RulesEnvelope> {
-        final static String TAG = "GetRulesInBackground";
-        @Override
-        protected RulesEnvelope doInBackground(Void... params) {
-            RulesEnvelope retVal = null;
-            try {
-                retVal = ArtikCloudSession.getInstance().getUsersApi().getUserRules(ArtikCloudSession.getInstance().getUserId(), true, false, null, null);
-            } catch (Exception e) {
-                Log.v(TAG, "::doInBackground run into Exception");
-                e.printStackTrace();
-            }
+                        @Override
+                        public void onSuccess(RulesEnvelope result, int statusCode, Map<String, List<String>> map) {
+                            Log.v(tag, "response after getting rules: " + result);
+                            handleGetRulesSuccessOnUIThread(result);
+                        }
 
-            return retVal;
-        }
+                        @Override
+                        public void onUploadProgress(long bytes, long contentLen, boolean done) {
+                        }
 
-        @Override
-        protected void onPostExecute(RulesEnvelope result) {
-            Log.v(TAG, "::response after getting rules: " + result.toString());
-            try {
-                String displayInfo = result.toString();
-                int receivedRules = result.getCount();
-                mRuleIdx = 0;
-                if (receivedRules <= 0) {
-                    mRuleIds = null;
-                } else {
-                    List<OutputRule> rulesObj = result.getData();
-                    int count = receivedRules > NUM_OF_RULES? NUM_OF_RULES : receivedRules;
-                    mRuleIds = new String[NUM_OF_RULES];
-                    displayInfo = "total:" + result.getTotal() + ", count:" + receivedRules +'\n';
-
-                    for (int i = 0; i < count; i++) {
-                        OutputRule thisRule = rulesObj.get(i);
-                        mRuleIds[i] = thisRule.getId();
-                        displayInfo += "id:" + mRuleIds[i] + '\n';
-                        displayInfo += "description:" + thisRule.getDescription() +'\n';
-                    }
-                }
-                handleBtnsEnable();
-                displayRulesApiCallResponse(TAG + " rules:\n" + displayInfo);
-            } catch (Exception e) {
-                Log.v(TAG, "::onPostExecute run into Exception");
-                e.printStackTrace();
-            }
-
+                        @Override
+                        public void onDownloadProgress(long bytes, long contentLen, boolean done) {
+                        }
+                    });
+        } catch (ApiException exc) {
+            processFailure(tag, exc);
         }
     }
 
-    class DeleteRuleInBackground extends AsyncTask<Void, Void, RuleEnvelope> {
-        final static String TAG = "DeleteRuleInBackground";
-        @Override
-        protected RuleEnvelope doInBackground(Void... params) {
-            RuleEnvelope retVal = null;
-            try {
-                retVal = ArtikCloudSession.getInstance().getRulesApi().deleteRule(mRuleIds[mRuleIdx]);
-            } catch (Exception e) {
-                Log.v(TAG, "::doInBackground run into Exception with rule index" + mRuleIdx);
-                e.printStackTrace();
-            }
+    private void deleteRule(){
+        final String tag = TAG + " deleteRuleAsync";
+        try {
+            ArtikCloudSession.getInstance().getRulesApi().deleteRuleAsync(
+                    mRuleIds[mRuleIdx],
+                    new ApiCallback<RuleEnvelope>() {
+                        @Override
+                        public void onFailure(ApiException exc, int statusCode, Map<String, List<String>> map) {
+                            processFailure(tag, exc);
+                        }
 
-            return retVal;
-        }
+                        @Override
+                        public void onSuccess(RuleEnvelope result, int statusCode, Map<String, List<String>> map) {
+                            Log.v(tag, "response deleting a rule: " + result);
+                            handleDeleteRulesSuccessOnUIThread(result);
+                        }
 
-        @Override
-        protected void onPostExecute(RuleEnvelope result) {
-            Log.v(TAG, "::response after deleting a rule with idx " + mRuleIdx + " : " + result);
-            try {
-                if (mRuleIdx == NUM_OF_RULES - 1) { //This is the last rule to delete
-                    mRuleIds = null;
-                    mRuleIdx = 0;
-                    handleBtnsEnable();
-                } else {
-                    mRuleIdx++;
-                    Log.d(TAG, "prepare to deleting rule with idx " + mRuleIdx);
-                    new DeleteRuleInBackground().execute();
-                }
-                displayRulesApiCallResponse(TAG + " response:\n" + result.toString());
-            } catch (Exception e) {
-                Log.v(TAG, "::onPostExecute run into Exception");
-                e.printStackTrace();
-            }
+                        @Override
+                        public void onUploadProgress(long bytes, long contentLen, boolean done) {
+                        }
 
+                        @Override
+                        public void onDownloadProgress(long bytes, long contentLen, boolean done) {
+                        }
+                    });
+        } catch (ApiException exc) {
+            processFailure(tag, exc);
         }
     }
+
 
     private RuleCreationInfo generateARule() {
         RuleCreationInfo rule = new RuleCreationInfo();
@@ -449,6 +434,92 @@ class CreateRuleInBackground extends AsyncTask<Void, Void, RuleEnvelope> {
         return rule;
     }
 
+
+///// Helpers
+    private void processFailure(final String context, ApiException exc) {
+        String errorDetail = " onFailure with exception" + exc;
+        Log.w(context, errorDetail);
+        exc.printStackTrace();
+        showErrorOnUIThread(context+errorDetail, RuleActivity.this);
+    }
+
+    static void showErrorOnUIThread(final String text, final Activity activity) {
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                int duration = Toast.LENGTH_LONG;
+                Toast toast = Toast.makeText(activity.getApplicationContext(), text, duration);
+                toast.show();
+            }
+        });
+    }
+
+    private void handleRuleCreationSuccessOnUIThread(final OutputRule ruleObj) {
+        this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (mRuleIds == null) {
+                    mRuleIds = new String[NUM_OF_RULES];
+                }
+                mRuleIds[mRuleIdx] = ruleObj.getId();
+                mRuleIdx++;
+                if (mRuleIdx < NUM_OF_RULES) {
+                    createRules();
+                } else {
+                    handleBtnsEnable();
+                }
+                displayRulesApiCallResponse(" Response after creating rule " + (mRuleIdx - 1) + ":\n" + ruleObj.toString());
+            }
+        });
+   }
+
+   private void handleGetRulesSuccessOnUIThread(final RulesEnvelope rules) {
+       this.runOnUiThread(new Runnable() {
+           @Override
+           public void run() {
+               String displayInfo = rules.toString();
+               int receivedRules = rules.getCount();
+               mRuleIdx = 0;
+               if (receivedRules <= 0) {
+                   mRuleIds = null;
+               } else {
+                   List<OutputRule> rulesObj = rules.getData();
+                   int count = receivedRules > NUM_OF_RULES? NUM_OF_RULES : receivedRules;
+                   mRuleIds = new String[NUM_OF_RULES];
+                   displayInfo = "total:" + rules.getTotal() + ", count:" + receivedRules +'\n';
+
+                   for (int i = 0; i < count; i++) {
+                       OutputRule thisRule = rulesObj.get(i);
+                       mRuleIds[i] = thisRule.getId();
+                       displayInfo += "id:" + mRuleIds[i] + '\n';
+                       displayInfo += "description:" + thisRule.getDescription() +'\n';
+                   }
+               }
+               handleBtnsEnable();
+               displayRulesApiCallResponse("Rules:\n" + displayInfo);
+
+           }
+       });
+   }
+
+    private void handleDeleteRulesSuccessOnUIThread(final RuleEnvelope rule) {
+        this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (mRuleIdx == NUM_OF_RULES - 1) { //This is the last rule to delete
+                    mRuleIds = null;
+                    mRuleIdx = 0;
+                    handleBtnsEnable();
+                } else {
+                    mRuleIdx++;
+                    Log.d(TAG, "prepare to deleting rule with idx " + mRuleIdx);
+                    deleteRule();
+                }
+                displayRulesApiCallResponse("response after deleting a rule :\n" + rule.toString());
+
+            }
+        });
+    }
     private void displayRulesApiCallResponse(String result) {
         Log.d(TAG, result);
         mRulesAPICallResponse.setText(null);//clean previous text
