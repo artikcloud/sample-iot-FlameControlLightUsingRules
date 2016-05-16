@@ -19,6 +19,7 @@ package cloud.artik.example.rules;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
+import android.os.AsyncTask;
 import android.util.Log;
 
 import com.squareup.okhttp.OkHttpClient;
@@ -226,13 +227,8 @@ public class ArtikCloudSession {
      */
     public void disconnectFirehoseWS() {
         if (mFirehoseWS != null) {
-            try {
-                mFirehoseWS.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            new DisconnectWSInBackground().execute();
         }
-        mFirehoseWS = null;
     }
 
     public void connectFirehoseWSBlocking() {
@@ -269,4 +265,22 @@ public class ArtikCloudSession {
         return isReadyToConnectWebSocketLive();
     }
 
+    class DisconnectWSInBackground extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected Void doInBackground(Void... params) {
+            try {
+                mFirehoseWS.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+
+        @Override
+        protected void onPostExecute(Void unused) {
+            mFirehoseWS = null;
+        }
+
+    }
 }
