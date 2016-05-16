@@ -512,7 +512,7 @@ public class RuleActivity extends Activity {
                     handleBtnsEnable();
                 } else {
                     mRuleIdx++;
-                    Log.d(TAG, "prepare to deleting rule with idx " + mRuleIdx);
+                    Log.d(TAG, "prepare to delete rule with idx " + mRuleIdx);
                     deleteRule();
                 }
                 displayRulesApiCallResponse("response after deleting a rule :\n" + rule.toString());
