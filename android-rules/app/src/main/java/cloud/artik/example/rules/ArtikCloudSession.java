@@ -102,7 +102,7 @@ public class ArtikCloudSession {
 
     public void setAccessToken(String token) {
         if (token == null || token.length() <= 0) {
-            Log.e(TAG, "Attempt to set a invalid token");
+            Log.e(TAG, "Attempt to set an invalid token");
             mAccessToken = null;
             return;
         }
