@@ -5,7 +5,7 @@ Build the Android app that accompanies the fire detector and smart lights. You w
 Introduction
 -------------
 
-The tutorial [Develop an Android app to manage SAMI Rules](https://blog.samsungsami.io/development/iot/mobile/rules/2016/03/23/develop-an-android-app-to-manage-sami-rules.html) at http://developer.samsungsami.io/ describes what the system does and how it is implemented.
+The tutorial [Develop an Android app to manage SAMI Rules](https://blog.samsungsami.io/development/iot/mobile/rules/2016/03/23/develop-an-android-app-to-manage-sami-rules.html) at http://artik.io/blog/cloud describes what the system does and how it is implemented.
 
 This repository contains the following software:
 
@@ -14,7 +14,7 @@ This repository contains the following software:
 Android Application
 -------------
 
-The root directory of the application is `sample-android-SAMIRules`.
+The root directory of the application is `android-rules`.
 
 Consult [Installation and setup](https://blog.samsungsami.io/development/iot/mobile/rules/2016/03/23/develop-an-android-app-to-manage-sami-rules.html#installation-and-setup) in the post to learn the prerequisites and installation steps.
 
@@ -34,6 +34,6 @@ Also see the ARTIK Cloud blog for tutorials, updates, and more: http://artik.io/
 License and Copyright
 ---------------------
 
-Licensed under the Apache License. See LICENSE.
+Licensed under the Apache License. See [LICENSE](https://github.com/artikcloud/sample-iot-FlameControlLightUsingRules/blob/master/LICENSE).
 
 Copyright (c) 2016 Samsung Electronics Co., Ltd.
