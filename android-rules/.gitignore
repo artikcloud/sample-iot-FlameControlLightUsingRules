@@ -32,6 +32,8 @@ build/
 
 # Misc
 .DS_Store
+gradle.properties
 
 # libraries generated locally
 app/libs
+
