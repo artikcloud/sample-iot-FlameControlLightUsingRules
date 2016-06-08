@@ -321,7 +321,7 @@ public class RuleActivity extends Activity {
         final String tag = TAG + " getUserRuleAsync";
         try {
             ArtikCloudSession.getInstance().getUsersApi().getUserRulesAsync(
-                    ArtikCloudSession.getInstance().getUserId(), true, false, null, null,
+                    ArtikCloudSession.getInstance().getUserId(), true, null, null,
                     new ApiCallback<RulesEnvelope>() {
                         @Override
                         public void onFailure(ApiException exc, int statusCode, Map<String, List<String>> map) {

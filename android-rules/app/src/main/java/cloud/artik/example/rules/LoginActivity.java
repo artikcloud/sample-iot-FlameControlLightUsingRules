@@ -69,7 +69,7 @@ public class LoginActivity extends Activity {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String uri) {
                 if (uri.startsWith(ArtikCloudSession.REDIRECT_URL)) {
-                    // Redirect URL has format http://localhost:81/acdemo/index.php#expires_in=1209600&token_type=bearer&access_token=xxxx
+                    // Redirect URL has format android-app://redirect#expires_in=1209600&token_type=bearer&access_token=xxxx
                     // Extract OAuth2 access_token in URL
                     if (uri.indexOf("access_token=") != -1) {
                         String accessToken;

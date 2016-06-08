@@ -18,11 +18,9 @@ package cloud.artik.example.rules;
 
 import android.content.Context;
 import android.content.Intent;
-import android.support.v4.content.LocalBroadcastManager;
 import android.os.AsyncTask;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-
-import com.squareup.okhttp.OkHttpClient;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -42,15 +40,12 @@ public class ArtikCloudSession {
     private final static String TAG = ArtikCloudSession.class.getSimpleName();
 
     // Copy them from the corresponding application in the Developer Dashboard
-//YWU    public static final String CLIENT_ID = "<YOUR CLIENT ID>";
-    public static final String CLIENT_ID = "5a4f4252415545ea8eb1462e41255f4c";
+    public static final String CLIENT_ID = "<YOUR CLIENT ID>";
     public static final String REDIRECT_URL = "android-app://redirect";
 
     // Copy them from the Device Info screen in My ARTIK Cloud
-//YWU    public final static String SMART_LIGHT_DEVICE_ID = "<YOUR SMART LIGHT DEVICE ID>";
-//YWU    public final static String FIRE_DETECTOR_DEVICE_ID = "<YOUR FIRE DETECTOR DEVICE ID>";
-    public final static String SMART_LIGHT_DEVICE_ID = "0f8b470c6e214a76b914bc864e2c2b6b";
-    public final static String FIRE_DETECTOR_DEVICE_ID = "45176de99e424d98b1a3c42558bfccf4";
+    public final static String SMART_LIGHT_DEVICE_ID = "<YOUR SMART LIGHT DEVICE ID>";
+    public final static String FIRE_DETECTOR_DEVICE_ID = "<YOUR FIRE DETECTOR DEVICE ID>";
 
     public static final String ARTIK_CLOUD_AUTH_BASE_URL = "https://accounts.artik.cloud";
 
@@ -129,8 +124,7 @@ public class ArtikCloudSession {
     public String getUserId() {return mUserId; }
 
     public String getAuthorizationRequestUri() {
-        //example: https://accounts.samsungsami.io/authorize?client=mobile&client_id=xxxx&response_type=token&redirect_uri=http://localhost:81/samidemo/index.php
-        //https://accounts.artik.cloud/authorize?client=mobile&client_id=xxxx&response_type=token&redirect_uri=http://localhost:8000/acdemo/index.php
+        //https://accounts.artik.cloud/authorize?client=mobile&client_id=xxxx&response_type=token&redirect_uri=android-app://redirect
         return ARTIK_CLOUD_AUTH_BASE_URL + "/authorize?client=mobile&response_type=token&" +
                 "client_id=" + CLIENT_ID + "&redirect_uri=" + REDIRECT_URL;
     }
@@ -159,9 +153,7 @@ public class ArtikCloudSession {
         sdids = sdids + mDeviceIDArray.get(numId - 1);
 
         try {
-            OkHttpClient client = new OkHttpClient();
-            client.setRetryOnConnectionFailure(true);
-            mFirehoseWS = new FirehoseWebSocket(client, mAccessToken, null, sdids, null, mUserId, new ArtikCloudWebSocketCallback() {
+            mFirehoseWS = new FirehoseWebSocket(mAccessToken, null, sdids, null, mUserId, new ArtikCloudWebSocketCallback() {
                 @Override
                 public void onOpen(int i, String s) {
                     Log.d(TAG, "FirehoseWebSocket: onOpen()");
